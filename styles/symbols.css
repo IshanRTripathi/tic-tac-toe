@@ -1,0 +1,15 @@
+.draggable:hover {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.player-x .draggable {
+  border: 2px solid #e74c3c;
+  border-radius: 8px;
+}
+
+.player-o .draggable {
+  border: 2px solid #3498db;
+  border-radius: 8px;
+}
+
+/* Removed conflicting transform property */

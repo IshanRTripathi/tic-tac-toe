@@ -1,0 +1,16 @@
+#reset {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  background: linear-gradient(145deg, #2c3e50, #34495e);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#reset:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
