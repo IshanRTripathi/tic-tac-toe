@@ -1,4 +1,5 @@
 import { SYMBOL_THEMES } from '../../config.js';
+import { showPopup } from '../ui/popupManager.js';
 
 export const createInitialState = (cells, message, theme = 'XO') => {
   const themeConfig = SYMBOL_THEMES[theme] || SYMBOL_THEMES.XO;
@@ -10,18 +11,13 @@ export const createInitialState = (cells, message, theme = 'XO') => {
     currentPlayer: themeConfig.symbols.player1,
     player1Symbol: themeConfig.symbols.player1,
     player2Symbol: themeConfig.symbols.player2,
-    player1Count: 6, // Updated to 6 symbols (2 units each of weights 1, 2, 3)
-    player2Count: 6, // Updated to 6 symbols (2 units each of weights 1, 2, 3)
-    xCount: 6, // Keeping for backward compatibility
-    oCount: 6, // Keeping for backward compatibility
     currentTheme: theme,
+    currentPlayerTurn: 'player1',
     showPopup: (msg) => {
-      try {
-        const popupManager = require('../ui/popupManager.js');
-        popupManager.showPopup(msg);
-      } catch (error) {
-        console.error('Popup error:', error);
-      }
+      showPopup(msg);
+    },
+    endTurn: function() {
+      this.currentPlayerTurn = this.currentPlayerTurn === 'player1' ? 'player2' : 'player1';
     }
   };
 };

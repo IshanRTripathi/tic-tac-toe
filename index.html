@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tic Tac Toe</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/board.css">
+  <link rel="stylesheet" href="./styles/symbols.css">
+  <link rel="stylesheet" href="./styles/buttons.css">
+  <link rel="stylesheet" href="./styles/popups.css">
 </head>
 <body>
   <div class="container">
@@ -13,26 +18,31 @@
     <div class="theme-selection">
       <label for="theme">Select Theme:</label>
       <select id="theme" class="theme-selector">
-        <option value="default">Default</option>
-        <option value="batman-superman">Batman vs Superman</option>
+        <!-- Options will be populated by JavaScript -->
       </select>
     </div>
     
     <div class="game-area">
       <div class="player-section player1" id="player1">
         <div class="player-title">Player 1</div>
-        <div class="player-symbols" id="player1-symbols"></div>
+        <div class="player-symbols" id="player1-symbols">
+          <!-- Player 1 symbols will be inserted here -->
+        </div>
       </div>
       
       <div class="board-container">
-        <div id="board" class="board"></div>
+        <div id="board" class="board">
+          <!-- Board cells will be inserted here (3x3 grid) -->
+        </div>
         <div class="message" id="message"></div>
         <button id="reset" class="reset-button">Reset Game</button>
       </div>
       
       <div class="player-section player2" id="player2">
         <div class="player-title">Player 2</div>
-        <div class="player-symbols" id="player2-symbols"></div>
+        <div class="player-symbols" id="player2-symbols">
+          <!-- Player 2 symbols will be inserted here -->
+        </div>
       </div>
     </div>
   </div>

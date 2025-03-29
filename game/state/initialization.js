@@ -29,29 +29,15 @@ export const initializeGame = (theme = 'XO') => {
   const themeConfig = SYMBOL_THEMES[theme] || SYMBOL_THEMES.XO;
   const gameState = createInitialState(cells, message, theme);
 
-  // Render player symbols
-  const player1Symbols = [
-    themeConfig.symbols.player1,
-    themeConfig.symbols.player1,
-    themeConfig.symbols.player1,
-    themeConfig.symbols.player1,
-    themeConfig.symbols.player1,
-    themeConfig.symbols.player1
-  ];
+  // Render player symbols - FIXED: Use correct player symbols from theme
+  const player1Symbols = Array(6).fill(themeConfig.symbols.player1);
   const player1Weights = [1, 1, 2, 2, 3, 3];
   
-  const player2Symbols = [
-    themeConfig.symbols.player2,
-    themeConfig.symbols.player2,
-    themeConfig.symbols.player2,
-    themeConfig.symbols.player2,
-    themeConfig.symbols.player2,
-    themeConfig.symbols.player2
-  ];
+  const player2Symbols = Array(6).fill(themeConfig.symbols.player2);
   const player2Weights = [1, 1, 2, 2, 3, 3];
 
-  renderPlayerSymbols(player1SymbolsContainer, player1Symbols, player1Weights, theme);
-  renderPlayerSymbols(player2SymbolsContainer, player2Symbols, player2Weights, theme);
+  renderPlayerSymbols(player1SymbolsContainer, player1Symbols, player1Weights, theme, true);
+  renderPlayerSymbols(player2SymbolsContainer, player2Symbols, player2Weights, theme, false);
 
   // Get all draggable images after rendering
   const draggableImages = [

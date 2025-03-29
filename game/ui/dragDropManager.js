@@ -1,145 +1,130 @@
 import { showPopup } from './popupManager.js';
 import { checkWin, checkDraw } from '../logic/gameRules.js';
 import { initializeBoard } from '../logic/boardOperations.js';
-import { IMAGE_URLS } from '../../config.js';
+import { SYMBOL_THEMES } from '../../config.js';
 
-export const setupDragAndDrop = (board, draggableImages, gameState) => {
-  let draggedSymbol = null;
-  let draggedWeight = null;
-  let draggedElement = null;
+export const setupDragAndDrop = (boardElement, draggableImages, gameState) => {
+  let draggedItem = null;
+  const cells = Array.from(boardElement.children);
 
-  const handleDragStart = (e) => {
-    draggedSymbol = e.target.dataset.symbol;
-    draggedWeight = parseInt(e.target.dataset.weight);
-    draggedElement = e.target;
-    e.dataTransfer.setData('text/plain', e.target.id);
-    showPopup(`Dragging ${draggedSymbol} with weight ${draggedWeight}`);
-  };
+  // Setup drag events for draggable images
+  draggableImages.forEach(img => {
+    img.addEventListener('dragstart', (e) => {
+      // Check if it's the current player's turn
+      const isPlayer1Symbol = img.dataset.symbol === gameState.player1Symbol.name;
+      const isPlayer1Turn = gameState.currentPlayerTurn === 'player1';
+      
+      if ((isPlayer1Symbol && !isPlayer1Turn) || (!isPlayer1Symbol && isPlayer1Turn)) {
+        e.preventDefault();
+        showPopup("Wait for your turn!", 'warning');
+        return;
+      }
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    if (!gameState.gameActive) return;
-
-    const cell = e.target.closest('.cell');
-    if (!cell) return;
-
-    const index = parseInt(cell.dataset.index);
-
-    if (!draggedSymbol || draggedSymbol !== gameState.currentPlayer) {
-      showPopup('Invalid symbol or not your turn');
-      return;
-    }
-
-    const currentSymbol = cell.dataset.symbol;
-    const currentWeight = parseInt(cell.dataset.weight || 0);
-
-    if (currentSymbol && currentWeight >= draggedWeight) {
-      showPopup(`Cannot override ${currentSymbol} (weight ${currentWeight}) with ${draggedSymbol} (weight ${draggedWeight})`);
-      return;
-    }
-
-    if (currentSymbol) {
-      showPopup(`Overriding ${currentSymbol} (weight ${currentWeight}) with ${draggedSymbol} (weight ${draggedWeight})`);
-    }
-
-    // Clear cell content safely
-    while (cell.firstChild) {
-      cell.removeChild(cell.firstChild);
-    }
-
-    // Create and append new symbol image
-    const cellImg = document.createElement('img');
-    cellImg.src = IMAGE_URLS[draggedSymbol];
-    cellImg.alt = `${draggedSymbol}${draggedWeight}`;
-    cellImg.dataset.symbol = draggedSymbol;
-    cellImg.dataset.weight = draggedWeight;
-    cellImg.className = 'cell-symbol';
-    cell.appendChild(cellImg);
-
-    // Update cell attributes
-    cell.dataset.symbol = draggedSymbol;
-    cell.dataset.weight = draggedWeight;
-
-    if (draggedElement) {
-      draggedElement.parentNode.removeChild(draggedElement);
-    }
-
-    if (draggedSymbol === gameState.player1Symbol) gameState.player1Count--;
-    else gameState.player2Count--;
-
-    const winner = checkWin(gameState.cells);
-    if (winner) {
-      gameState.message.textContent = `Player ${winner} wins!`;
-      gameState.gameActive = false;
-      showPopup(`Player ${winner} wins!`);
-      return;
-    }
-
-    if (checkDraw(gameState.cells)) {
-      gameState.message.textContent = 'It\'s a draw!';
-      gameState.gameActive = false;
-      showPopup('Game ended in a draw');
-      return;
-    }
-
-    gameState.currentPlayer = gameState.currentPlayer === gameState.player1Symbol 
-      ? gameState.player2Symbol 
-      : gameState.player1Symbol;
-    showPopup(`Next player: ${gameState.currentPlayer}`);
-  };
-
-  // Remove existing listeners
-  if (draggableImages && draggableImages.length > 0) {
-    draggableImages.forEach(img => {
-      img.removeEventListener('dragstart', handleDragStart);
+      draggedItem = e.target;
+      e.dataTransfer.setData('text/plain', e.target.dataset.symbol);
+      showPopup(`Lifted ${e.target.dataset.symbol} (Weight: ${e.target.dataset.weight})`, 'info');
+      setTimeout(() => {
+        e.target.classList.add('dragging');
+      }, 0);
     });
-  }
 
-  if (board) {
-    board.removeEventListener('dragover', handleDragOver);
-    board.removeEventListener('drop', handleDrop);
-  }
-
-  // Add new listeners
-  if (draggableImages && draggableImages.length > 0) {
-    draggableImages.forEach((image) => {
-      image.addEventListener('dragstart', handleDragStart);
+    img.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
     });
-  }
+  });
 
-  if (board) {
-    board.addEventListener('dragover', handleDragOver);
-    board.addEventListener('drop', handleDrop);
-  }
+  // Setup drop events for board cells
+  cells.forEach(cell => {
+    cell.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    cell.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      if (gameState.gameActive) {
+        cell.classList.add('drop-target');
+      }
+    });
+
+    cell.addEventListener('dragleave', (e) => {
+      cell.classList.remove('drop-target');
+    });
+
+    cell.addEventListener('drop', (e) => {
+      e.preventDefault();
+      cell.classList.remove('drop-target');
+
+      if (!gameState.gameActive || !draggedItem) return;
+
+      const symbol = draggedItem.dataset.symbol;
+      const weight = draggedItem.dataset.weight;
+
+      if (cell.firstChild) {
+        showPopup('Cell already occupied!', 'error');
+        return;
+      }
+
+      const symbolImg = document.createElement('img');
+      symbolImg.src = gameState.currentPlayer.image;
+      symbolImg.alt = symbol;
+      symbolImg.dataset.symbol = symbol;
+      symbolImg.dataset.weight = weight;
+      cell.appendChild(symbolImg);
+
+      // Update game state
+      cell.dataset.symbol = symbol;
+      cell.dataset.weight = weight;
+      cell.dataset.player = gameState.currentPlayer === gameState.player1Symbol ? 'player1' : 'player2';
+
+      showPopup(`${gameState.currentPlayer.name} placed ${symbol} (Weight: ${weight})`, 'success');
+
+      // Check win/draw conditions
+      if (checkWin(cells, gameState)) {
+        showPopup(`${gameState.currentPlayer.name} wins!`, 'success');
+        gameState.gameActive = false;
+      } else if (checkDraw(cells)) {
+        showPopup('Game ended in a draw!', 'info');
+        gameState.gameActive = false;
+      } else {
+        // Switch player and end turn
+        gameState.currentPlayer = gameState.currentPlayer === gameState.player1Symbol 
+          ? gameState.player2Symbol 
+          : gameState.player1Symbol;
+        showPopup(`It's now ${gameState.currentPlayer.name}'s turn`, 'info');
+        gameState.endTurn();
+      }
+    });
+  });
 };
 
-export const renderPlayerSymbols = (container, symbols, weights, theme) => {
-  // Clear container safely
+export const renderPlayerSymbols = (container, symbols, weights, theme, isPlayer1) => {
   while (container.firstChild) {
     container.removeChild(container.firstChild);
   }
 
-  // Create and append symbols
+  const themeConfig = SYMBOL_THEMES[theme];
+  if (!themeConfig) {
+    showPopup('Invalid theme configuration!', 'error');
+    return;
+  }
+
   symbols.forEach((symbol, index) => {
     const symbolItem = document.createElement('div');
     symbolItem.className = 'symbol-item';
     symbolItem.draggable = true;
-    symbolItem.dataset.symbol = symbol;
+    symbolItem.dataset.symbol = symbol.name;
     symbolItem.dataset.weight = weights[index];
-    symbolItem.id = `${symbol}-${weights[index]}`;
+    symbolItem.id = `${symbol.name}-${weights[index]}`;
 
     const symbolImg = document.createElement('img');
-    symbolImg.src = IMAGE_URLS[symbol];
-    symbolImg.alt = `${symbol}${weights[index]}`;
-    symbolImg.dataset.symbol = symbol;
+    symbolImg.src = symbol.image;
+    symbolImg.alt = `${symbol.name}${weights[index]}`;
+    symbolImg.dataset.symbol = symbol.name;
     symbolImg.dataset.weight = weights[index];
 
     symbolItem.appendChild(symbolImg);
     container.appendChild(symbolItem);
   });
+
+  showPopup(`Symbols rendered for ${isPlayer1 ? 'Player 1' : 'Player 2'}`, 'success');
 };

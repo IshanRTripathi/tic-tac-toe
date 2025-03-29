@@ -1,11 +1,15 @@
-import { initializeGame } from '../state/initialization.js';
+import { initializeBoard } from '../logic/boardOperations.js';
+import { SYMBOL_THEMES } from '../../config.js';
+import { showPopup } from './popupManager.js';
 
 export const setupResetButton = (button, gameState) => {
-  if (!button) return;
-  
   button.addEventListener('click', () => {
-    const themeSelector = document.querySelector('.theme-selector');
-    const currentTheme = themeSelector ? themeSelector.value : 'XO';
-    initializeGame(currentTheme);
+    const boardCells = document.querySelectorAll('.cell');
+    initializeBoard(boardCells);
+    gameState.cells = Array(9).fill(null);
+    gameState.gameActive = true;
+    gameState.currentPlayer = SYMBOL_THEMES[gameState.currentTheme].symbols.player1;
+    gameState.currentPlayerTurn = 'player1';
+    showPopup('Game has been reset', 'success');
   });
 };
