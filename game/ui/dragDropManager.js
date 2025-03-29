@@ -1,6 +1,7 @@
 import { showPopup } from './popupManager.js';
 import { checkWin, checkDraw } from '../logic/gameRules.js';
 import { initializeBoard } from '../logic/boardOperations.js';
+import { IMAGE_URLS } from '../../config.js';
 
 export const setupDragAndDrop = (board, draggableImages, gameState) => {
   let draggedSymbol = null;
@@ -46,14 +47,30 @@ export const setupDragAndDrop = (board, draggableImages, gameState) => {
       showPopup(`Overriding ${currentSymbol} (weight ${currentWeight}) with ${draggedSymbol} (weight ${draggedWeight})`);
     }
 
-    cell.textContent = draggedSymbol;
+    // Clear cell content safely
+    while (cell.firstChild) {
+      cell.removeChild(cell.firstChild);
+    }
+
+    // Create and append new symbol image
+    const cellImg = document.createElement('img');
+    cellImg.src = IMAGE_URLS[draggedSymbol];
+    cellImg.alt = `${draggedSymbol}${draggedWeight}`;
+    cellImg.dataset.symbol = draggedSymbol;
+    cellImg.dataset.weight = draggedWeight;
+    cellImg.className = 'cell-symbol';
+    cell.appendChild(cellImg);
+
+    // Update cell attributes
     cell.dataset.symbol = draggedSymbol;
     cell.dataset.weight = draggedWeight;
 
-    if (draggedElement) draggedElement.remove();
+    if (draggedElement) {
+      draggedElement.parentNode.removeChild(draggedElement);
+    }
 
-    if (draggedSymbol === 'X') gameState.xCount--;
-    else gameState.oCount--;
+    if (draggedSymbol === gameState.player1Symbol) gameState.player1Count--;
+    else gameState.player2Count--;
 
     const winner = checkWin(gameState.cells);
     if (winner) {
@@ -70,20 +87,59 @@ export const setupDragAndDrop = (board, draggableImages, gameState) => {
       return;
     }
 
-    gameState.currentPlayer = gameState.currentPlayer === 'X' ? 'O' : 'X';
+    gameState.currentPlayer = gameState.currentPlayer === gameState.player1Symbol 
+      ? gameState.player2Symbol 
+      : gameState.player1Symbol;
     showPopup(`Next player: ${gameState.currentPlayer}`);
   };
 
-  draggableImages.forEach(img => {
-    img.removeEventListener('dragstart', handleDragStart);
-  });
-  board.removeEventListener('dragover', handleDragOver);
-  board.removeEventListener('drop', handleDrop);
+  // Remove existing listeners
+  if (draggableImages && draggableImages.length > 0) {
+    draggableImages.forEach(img => {
+      img.removeEventListener('dragstart', handleDragStart);
+    });
+  }
 
-  draggableImages.forEach((image) => {
-    image.addEventListener('dragstart', handleDragStart);
-  });
+  if (board) {
+    board.removeEventListener('dragover', handleDragOver);
+    board.removeEventListener('drop', handleDrop);
+  }
 
-  board.addEventListener('dragover', handleDragOver);
-  board.addEventListener('drop', handleDrop);
+  // Add new listeners
+  if (draggableImages && draggableImages.length > 0) {
+    draggableImages.forEach((image) => {
+      image.addEventListener('dragstart', handleDragStart);
+    });
+  }
+
+  if (board) {
+    board.addEventListener('dragover', handleDragOver);
+    board.addEventListener('drop', handleDrop);
+  }
+};
+
+export const renderPlayerSymbols = (container, symbols, weights, theme) => {
+  // Clear container safely
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+
+  // Create and append symbols
+  symbols.forEach((symbol, index) => {
+    const symbolItem = document.createElement('div');
+    symbolItem.className = 'symbol-item';
+    symbolItem.draggable = true;
+    symbolItem.dataset.symbol = symbol;
+    symbolItem.dataset.weight = weights[index];
+    symbolItem.id = `${symbol}-${weights[index]}`;
+
+    const symbolImg = document.createElement('img');
+    symbolImg.src = IMAGE_URLS[symbol];
+    symbolImg.alt = `${symbol}${weights[index]}`;
+    symbolImg.dataset.symbol = symbol;
+    symbolImg.dataset.weight = weights[index];
+
+    symbolItem.appendChild(symbolImg);
+    container.appendChild(symbolItem);
+  });
 };

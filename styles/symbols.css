@@ -1,15 +1,18 @@
-.draggable:hover {
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+/* Add theme selection styling */
+.theme-selection {
+  margin: 20px 0;
+  text-align: center;
 }
 
-.player-x .draggable {
-  border: 2px solid #e74c3c;
-  border-radius: 8px;
+.theme-selector {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  background-color: white;
+  cursor: pointer;
 }
 
-.player-o .draggable {
-  border: 2px solid #3498db;
-  border-radius: 8px;
+.theme-selector:hover {
+  border-color: #888;
 }
-
-/* Removed conflicting transform property */

@@ -1,63 +1,64 @@
+import { createInitialState } from './gameState.js';
+import { setupDragAndDrop, renderPlayerSymbols } from '../ui/dragDropManager.js';
 import { initializeBoard } from '../logic/boardOperations.js';
-import { IMAGE_URLS } from '../../config.js';
+import { setupResetButton } from '../ui/resetManager.js';
+import { SYMBOL_THEMES } from '../../config.js';
 
-export const initializeGame = (gameState) => {
-  // Reset game state
-  gameState.currentPlayer = 'X';
-  gameState.gameActive = true;
-  gameState.message.textContent = '';
-  gameState.xCount = 6;
-  gameState.oCount = 6;
+export const initializeGame = (theme = 'XO') => {
+  const board = document.getElementById('board');
+  const message = document.getElementById('message');
+  const resetButton = document.getElementById('reset');
+  const player1SymbolsContainer = document.getElementById('player1-symbols');
+  const player2SymbolsContainer = document.getElementById('player2-symbols');
   
-  // Clear the board
-  initializeBoard(gameState.cells);
+  // Clear board
+  while (board.firstChild) {
+    board.removeChild(board.firstChild);
+  }
+
+  // Create cells
+  const cells = [];
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.index = i;
+    board.appendChild(cell);
+    cells.push(cell);
+  }
+
+  const themeConfig = SYMBOL_THEMES[theme] || SYMBOL_THEMES.XO;
+  const gameState = createInitialState(cells, message, theme);
+
+  // Render player symbols
+  const player1Symbols = [
+    themeConfig.symbols.player1,
+    themeConfig.symbols.player1,
+    themeConfig.symbols.player1,
+    themeConfig.symbols.player1,
+    themeConfig.symbols.player1,
+    themeConfig.symbols.player1
+  ];
+  const player1Weights = [1, 1, 2, 2, 3, 3];
   
-  // Recreate symbols HTML with CDN URLs
-  return `
-    <div class="player-x">
-      <h2>Player X</h2>
-      <div class="symbol-row">
-        <img src="${IMAGE_URLS.X}" alt="X1" class="draggable" draggable="true" data-symbol="X" data-weight="1">
-        <img src="${IMAGE_URLS.X}" alt="X1" class="draggable" draggable="true" data-symbol="X" data-weight="1">
-      </div>
-      <div class="symbol-row">
-        <img src="${IMAGE_URLS.X}" alt="X2" class="draggable" draggable="true" data-symbol="X" data-weight="2">
-        <img src="${IMAGE_URLS.X}" alt="X2" class="draggable" draggable="true" data-symbol="X" data-weight="2">
-      </div>
-      <div class="symbol-row">
-        <img src="${IMAGE_URLS.X}" alt="X3" class="draggable" draggable="true" data-symbol="X" data-weight="3">
-        <img src="${IMAGE_URLS.X}" alt="X3" class="draggable" draggable="true" data-symbol="X" data-weight="3">
-      </div>
-    </div>
-    <div class="board-container">
-      <div id="board">
-        <div class="cell" data-index="0"></div>
-        <div class="cell" data-index="1"></div>
-        <div class="cell" data-index="2"></div>
-        <div class="cell" data-index="3"></div>
-        <div class="cell" data-index="4"></div>
-        <div class="cell" data-index="5"></div>
-        <div class="cell" data-index="6"></div>
-        <div class="cell" data-index="7"></div>
-        <div class="cell" data-index="8"></div>
-      </div>
-      <div id="message"></div>
-      <button id="reset">Reset Game</button>
-    </div>
-    <div class="player-o">
-      <h2>Player O</h2>
-      <div class="symbol-row">
-        <img src="${IMAGE_URLS.O}" alt="O1" class="draggable" draggable="true" data-symbol="O" data-weight="1">
-        <img src="${IMAGE_URLS.O}" alt="O1" class="draggable" draggable="true" data-symbol="O" data-weight="1">
-      </div>
-      <div class="symbol-row">
-        <img src="${IMAGE_URLS.O}" alt="O2" class="draggable" draggable="true" data-symbol="O" data-weight="2">
-        <img src="${IMAGE_URLS.O}" alt="O2" class="draggable" draggable="true" data-symbol="O" data-weight="2">
-      </div>
-      <div class="symbol-row">
-        <img src="${IMAGE_URLS.O}" alt="O3" class="draggable" draggable="true" data-symbol="O" data-weight="3">
-        <img src="${IMAGE_URLS.O}" alt="O3" class="draggable" draggable="true" data-symbol="O" data-weight="3">
-      </div>
-    </div>
-  `;
+  const player2Symbols = [
+    themeConfig.symbols.player2,
+    themeConfig.symbols.player2,
+    themeConfig.symbols.player2,
+    themeConfig.symbols.player2,
+    themeConfig.symbols.player2,
+    themeConfig.symbols.player2
+  ];
+  const player2Weights = [1, 1, 2, 2, 3, 3];
+
+  renderPlayerSymbols(player1SymbolsContainer, player1Symbols, player1Weights, theme);
+  renderPlayerSymbols(player2SymbolsContainer, player2Symbols, player2Weights, theme);
+
+  // Get all draggable images after rendering
+  const draggableImages = [
+    ...player1SymbolsContainer.querySelectorAll('.symbol-item'),
+    ...player2SymbolsContainer.querySelectorAll('.symbol-item')
+  ];
+
+  setupDragAndDrop(board, draggableImages, gameState);
+  setupResetButton(resetButton, gameState);
 };

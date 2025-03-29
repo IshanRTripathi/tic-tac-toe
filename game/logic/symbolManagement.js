@@ -1,24 +1,25 @@
 import { symbolWeights } from './winConditions.js';
-import { IMAGE_URLS } from '../../config.js';
+import { SYMBOL_THEMES } from '../../config.js';
 
-export const initializeSymbols = () => {
+export const initializeSymbols = (theme = 'XO') => {
+  const themeConfig = SYMBOL_THEMES[theme] || SYMBOL_THEMES.XO;
   const xImages = document.querySelectorAll('.player-x .draggable');
   const oImages = document.querySelectorAll('.player-o .draggable');
 
   xImages.forEach((img, index) => {
     const weight = symbolWeights[index];
-    img.src = IMAGE_URLS.X;
-    img.alt = `X${weight}`;
-    img.dataset.symbol = 'X';
+    img.src = themeConfig.symbols.images.player1;
+    img.alt = `${themeConfig.symbols.player1}${weight}`;
+    img.dataset.symbol = themeConfig.symbols.player1;
     img.dataset.weight = weight;
     img.style.display = 'block';
   });
 
   oImages.forEach((img, index) => {
     const weight = symbolWeights[index];
-    img.src = IMAGE_URLS.O;
-    img.alt = `O${weight}`;
-    img.dataset.symbol = 'O';
+    img.src = themeConfig.symbols.images.player2;
+    img.alt = `${themeConfig.symbols.player2}${weight}`;
+    img.dataset.symbol = themeConfig.symbols.player2;
     img.dataset.weight = weight;
     img.style.display = 'block';
   });

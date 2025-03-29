@@ -1,4 +1,9 @@
-/* Base styles remain exactly as they were */
+:root {
+  --board-size: 400px;
+  --symbol-size: 80px;
+  --symbol-size-mobile: 60px;
+}
+
 body {
   font-family: 'Arial', sans-serif;
   margin: 0;
@@ -13,47 +18,36 @@ body {
 .container {
   text-align: center;
   background-color: white;
-  padding: 2.5rem;
+  padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  max-width: 900px;
-  width: 90%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 1200px;
+  width: 95%;
 }
 
 h1 {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   color: #2c3e50;
-  font-size: 2.8rem;
+  font-size: 2.5rem;
   font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.symbols {
+.game-area {
   display: flex;
   justify-content: space-between;
-  margin: 2.5rem 0;
-  padding: 1.5rem;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-  width: 100%;
+  align-items: center;
+  gap: 2rem;
+  margin: 2rem 0;
 }
 
 .player-x, .player-o {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 45%;
   padding: 1.5rem;
   border-radius: 12px;
   transition: transform 0.2s ease;
-}
-
-.player-x:hover, .player-o:hover {
-  transform: translateY(-3px);
+  height: 100%;
 }
 
 .player-x {
@@ -64,16 +58,20 @@ h1 {
   background: linear-gradient(145deg, #e3f2fd, #bbdefb);
 }
 
+.player-x:hover, .player-o:hover {
+  transform: translateY(-3px);
+}
+
 .symbol-row {
   display: flex;
   justify-content: center;
-  gap: 1.5rem;
-  margin: 1rem 0;
+  gap: 1rem;
+  margin: 0.5rem 0;
 }
 
 .draggable {
-  width: 60px;
-  height: 60px;
+  width: var(--symbol-size);
+  height: var(--symbol-size);
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
   filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
@@ -84,34 +82,32 @@ h1 {
   opacity: 0.9;
 }
 
+.board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 #message {
-  margin: 2rem 0;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   color: #2c3e50;
   min-height: 24px;
   font-weight: 500;
 }
 
-@media (max-width: 600px) {
-  .container {
-    padding: 1.5rem;
-  }
-
-  h1 {
-    font-size: 2.2rem;
-  }
-
-  .symbols {
+@media (max-width: 900px) {
+  .game-area {
     flex-direction: column;
-    gap: 1.5rem;
   }
 
   .player-x, .player-o {
     width: 100%;
+    padding: 1rem;
   }
 
   .draggable {
-    width: 50px;
-    height: 50px;
+    width: var(--symbol-size-mobile);
+    height: var(--symbol-size-mobile);
   }
 }

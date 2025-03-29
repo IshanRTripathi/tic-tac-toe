@@ -40,3 +40,7 @@ export class ConsoleToPopup {
     console.info = this.originalConsole.info;
   }
 }
+
+export const createConsoleToPopup = (showPopupFn) => {
+  return new ConsoleToPopup(showPopupFn);
+}

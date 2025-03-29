@@ -1,24 +1,41 @@
 export const showPopup = (message) => {
-  console.log('Popup triggered with message:', message); // Debug log
-  
-  const popupContainer = document.querySelector('.popup-container') || (() => {
-    const container = document.createElement('div');
-    container.className = 'popup-container';
-    document.body.appendChild(container);
-    return container;
-  })();
-
-  const popup = document.createElement('div');
-  popup.className = 'popup';
-  popup.textContent = message;
-  popupContainer.prepend(popup);
-  
-  setTimeout(() => {
-    popup.remove();
-    if (popupContainer.children.length === 0) {
-      popupContainer.remove();
+  try {
+    // Create popup container if it doesn't exist
+    let popupContainer = document.querySelector('.popup-container');
+    if (!popupContainer) {
+      popupContainer = document.createElement('div');
+      popupContainer.className = 'popup-container';
+      document.body.appendChild(popupContainer);
     }
-  }, 5000);
-  
-  return popup; // For testing
+
+    // Create popup element with proper styling
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.textContent = message;
+    popup.style.display = 'block';
+    popup.style.opacity = '0';
+    popupContainer.prepend(popup);
+
+    // Force reflow before animation
+    popup.getBoundingClientRect();
+
+    // Fade in animation
+    popup.style.opacity = '1';
+
+    // Auto-remove after delay
+    setTimeout(() => {
+      popup.style.opacity = '0';
+      setTimeout(() => {
+        popup.remove();
+        if (popupContainer && popupContainer.children.length === 0) {
+          popupContainer.remove();
+        }
+      }, 300);
+    }, 3000);
+
+    return popup;
+  } catch (error) {
+    console.error('Popup error:', error);
+    return null;
+  }
 };
