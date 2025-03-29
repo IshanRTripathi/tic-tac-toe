@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'development') {
 // Main game initialization
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    console.log('Initializing game...'); // Debug log
+    console.log('Initializing game...'); 
     
     // Load theme options first
     await loadThemeOptions();
@@ -26,13 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Then initialize game with default theme
     initializeGame();
     
-    // Theme selector event delegation
-    document.body.addEventListener('change', (e) => {
-      if (e.target.classList.contains('theme-selector')) {
-        console.log('Theme changed to:', e.target.value); // Debug log
-        initializeGame(e.target.value);
-      }
-    });
+    console.log('Game initialized successfully');
     
   } catch (error) {
     console.error('Game initialization failed:', error);

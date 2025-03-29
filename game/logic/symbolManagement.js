@@ -12,35 +12,39 @@ export const initializeSymbols = (theme = 'XO') => {
       throw new Error('Player symbol containers not found');
     }
 
-    // Clear existing symbols
+    // Clear existing symbols and titles completely
     player1Container.innerHTML = '';
     player2Container.innerHTML = '';
 
-    // Create player title elements
-    const player1Title = document.createElement('h3');
-    player1Title.className = 'player-title';
-    player1Title.textContent = 'Player 1';
-    player1Container.parentNode.insertBefore(player1Title, player1Container);
+    // Remove all existing titles
+    const existingTitles = document.querySelectorAll('.player-title');
+    existingTitles.forEach(title => title.remove());
 
-    const player2Title = document.createElement('h3');
-    player2Title.className = 'player-title';
-    player2Title.textContent = 'Player 2';
-    player2Container.parentNode.insertBefore(player2Title, player2Container);
+    // Create single player title element
+    const createPlayerTitle = (container, playerName) => {
+      const title = document.createElement('h3');
+      title.className = 'player-title';
+      title.textContent = playerName;
+      container.parentNode.insertBefore(title, container);
+    };
 
-    // Create weight groups for both players
-    const createWeightGroups = (container, playerSymbol) => {
-      // Group symbols by weight (1, 2, 3)
-      const weightGroups = {
-        weight1: [],
-        weight2: [],
-        weight3: []
-      };
+    createPlayerTitle(player1Container, 'Player 1');
+    createPlayerTitle(player2Container, 'Player 2');
 
-      // Create all symbols first and group them by weight
-      symbolWeights.forEach((weight) => {
-        for (let i = 0; i < 2; i++) {
+    // Consistent weighted symbol distribution (total 6 per player)
+    const weightedPairs = [
+      { weight: 1, count: 2 },
+      { weight: 2, count: 2 },
+      { weight: 3, count: 2 }
+    ];
+
+    // Create symbols for a player
+    const createSymbols = (container, playerSymbol) => {
+      weightedPairs.forEach(({ weight, count }) => {
+        for (let i = 0; i < count; i++) {
           const symbolDiv = document.createElement('div');
           symbolDiv.className = 'symbol-item';
+          symbolDiv.dataset.weight = weight;
           
           const img = document.createElement('img');
           img.className = 'draggable';
@@ -51,34 +55,14 @@ export const initializeSymbols = (theme = 'XO') => {
           img.draggable = true;
           
           symbolDiv.appendChild(img);
-          
-          // Add to appropriate weight group
-          if (weight === 1) weightGroups.weight1.push(symbolDiv);
-          else if (weight === 2) weightGroups.weight2.push(symbolDiv);
-          else weightGroups.weight3.push(symbolDiv);
-        }
-      });
-
-      // Create containers for each weight group
-      Object.entries(weightGroups).forEach(([weightKey, symbols]) => {
-        if (symbols.length > 0) {
-          const weightContainer = document.createElement('div');
-          weightContainer.className = `weight-group ${weightKey}`;
-          
-          // Add all symbols for this weight side by side
-          symbols.forEach(symbol => {
-            weightContainer.appendChild(symbol);
-          });
-          
-          container.appendChild(weightContainer);
+          container.appendChild(symbolDiv);
         }
       });
     };
 
-    createWeightGroups(player1Container, themeConfig.symbols.player1);
-    createWeightGroups(player2Container, themeConfig.symbols.player2);
+    createSymbols(player1Container, themeConfig.symbols.player1);
+    createSymbols(player2Container, themeConfig.symbols.player2);
 
-    showPopup('Symbols initialized', 'success');
     return true;
   } catch (error) {
     console.error('Symbol initialization error:', error);

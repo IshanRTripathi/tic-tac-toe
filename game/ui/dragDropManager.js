@@ -1,7 +1,6 @@
 import { showPopup } from './popupManager.js';
 import { checkWin, checkDraw } from '../logic/gameRules.js';
 import { initializeBoard } from '../logic/boardOperations.js';
-import { SYMBOL_THEMES } from '../../config.js';
 
 export const setupDragAndDrop = (boardElement, draggableImages, gameState) => {
   let draggedItem = null;
@@ -10,19 +9,23 @@ export const setupDragAndDrop = (boardElement, draggableImages, gameState) => {
   // Setup drag events for draggable images
   draggableImages.forEach(img => {
     img.addEventListener('dragstart', (e) => {
-      // Check if it's the current player's turn
-      const isPlayer1Symbol = img.dataset.symbol === gameState.player1Symbol.name;
-      const isPlayer1Turn = gameState.currentPlayerTurn === 'player1';
-      
-      if ((isPlayer1Symbol && !isPlayer1Turn) || (!isPlayer1Symbol && isPlayer1Turn)) {
+      if (!gameState.gameActive) {
         e.preventDefault();
-        showPopup("Wait for your turn!", 'warning');
+        return;
+      }
+
+      // Only allow dragging if it's the current player's turn
+      const isPlayer1 = gameState.currentPlayer === gameState.player1Symbol;
+      const isPlayer1Symbol = e.target.dataset.symbol === gameState.player1Symbol.name;
+      
+      if ((isPlayer1 && !isPlayer1Symbol) || (!isPlayer1 && isPlayer1Symbol)) {
+        e.preventDefault();
+        showPopup(`It's ${gameState.currentPlayer.name}'s turn!`, 'error');
         return;
       }
 
       draggedItem = e.target;
       e.dataTransfer.setData('text/plain', e.target.dataset.symbol);
-      showPopup(`Lifted ${e.target.dataset.symbol} (Weight: ${e.target.dataset.weight})`, 'info');
       setTimeout(() => {
         e.target.classList.add('dragging');
       }, 0);
@@ -57,26 +60,56 @@ export const setupDragAndDrop = (boardElement, draggableImages, gameState) => {
       if (!gameState.gameActive || !draggedItem) return;
 
       const symbol = draggedItem.dataset.symbol;
-      const weight = draggedItem.dataset.weight;
+      const weight = parseInt(draggedItem.dataset.weight);
 
-      if (cell.firstChild) {
-        showPopup('Cell already occupied!', 'error');
+      // Verify it's the correct player's turn
+      const isPlayer1 = gameState.currentPlayer === gameState.player1Symbol;
+      const isPlayer1Symbol = symbol === gameState.player1Symbol.name;
+      
+      if ((isPlayer1 && !isPlayer1Symbol) || (!isPlayer1 && isPlayer1Symbol)) {
+        showPopup(`It's ${gameState.currentPlayer.name}'s turn!`, 'error');
         return;
       }
 
+      // Check if cell is occupied
+      if (cell.firstChild) {
+        const existingWeight = parseInt(cell.firstChild.dataset.weight);
+        
+        // Only allow override if new symbol has higher weight
+        if (weight > existingWeight) {
+          // Remove existing symbol
+          cell.innerHTML = '';
+        } else {
+          showPopup('Cannot override - new symbol must have higher weight!', 'error');
+          return;
+        }
+      }
+
       const symbolImg = document.createElement('img');
-      symbolImg.src = gameState.currentPlayer.image;
+      symbolImg.src = draggedItem.src;
       symbolImg.alt = symbol;
       symbolImg.dataset.symbol = symbol;
       symbolImg.dataset.weight = weight;
       cell.appendChild(symbolImg);
 
+      // Remove the placed symbol from player's inventory
+      const playerContainer = isPlayer1 
+        ? document.getElementById('player1-symbols') 
+        : document.getElementById('player2-symbols');
+      
+      if (playerContainer) {
+        const symbolToRemove = Array.from(playerContainer.querySelectorAll('.symbol-item img'))
+          .find(img => img.dataset.symbol === symbol && parseInt(img.dataset.weight) === weight);
+        
+        if (symbolToRemove) {
+          symbolToRemove.parentElement.remove();
+        }
+      }
+
       // Update game state
       cell.dataset.symbol = symbol;
       cell.dataset.weight = weight;
-      cell.dataset.player = gameState.currentPlayer === gameState.player1Symbol ? 'player1' : 'player2';
-
-      showPopup(`${gameState.currentPlayer.name} placed ${symbol} (Weight: ${weight})`, 'success');
+      cell.dataset.player = isPlayer1 ? 'player1' : 'player2';
 
       // Check win/draw conditions
       if (checkWin(cells, gameState)) {
@@ -86,11 +119,10 @@ export const setupDragAndDrop = (boardElement, draggableImages, gameState) => {
         showPopup('Game ended in a draw!', 'info');
         gameState.gameActive = false;
       } else {
-        // Switch player and end turn
-        gameState.currentPlayer = gameState.currentPlayer === gameState.player1Symbol 
+        // Switch player
+        gameState.currentPlayer = isPlayer1 
           ? gameState.player2Symbol 
           : gameState.player1Symbol;
-        showPopup(`It's now ${gameState.currentPlayer.name}'s turn`, 'info');
         gameState.endTurn();
       }
     });
@@ -98,33 +130,23 @@ export const setupDragAndDrop = (boardElement, draggableImages, gameState) => {
 };
 
 export const renderPlayerSymbols = (container, symbols, weights, theme, isPlayer1) => {
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
-
-  const themeConfig = SYMBOL_THEMES[theme];
-  if (!themeConfig) {
-    showPopup('Invalid theme configuration!', 'error');
-    return;
-  }
-
+  container.innerHTML = '';
+  
   symbols.forEach((symbol, index) => {
     const symbolItem = document.createElement('div');
     symbolItem.className = 'symbol-item';
     symbolItem.draggable = true;
     symbolItem.dataset.symbol = symbol.name;
     symbolItem.dataset.weight = weights[index];
-    symbolItem.id = `${symbol.name}-${weights[index]}`;
 
     const symbolImg = document.createElement('img');
     symbolImg.src = symbol.image;
     symbolImg.alt = `${symbol.name}${weights[index]}`;
     symbolImg.dataset.symbol = symbol.name;
     symbolImg.dataset.weight = weights[index];
+    symbolImg.draggable = true;
 
     symbolItem.appendChild(symbolImg);
     container.appendChild(symbolItem);
   });
-
-  showPopup(`Symbols rendered for ${isPlayer1 ? 'Player 1' : 'Player 2'}`, 'success');
 };
